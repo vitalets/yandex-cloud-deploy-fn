@@ -25,7 +25,7 @@ module.exports = {
   folderId: YC_FOLDER_ID,
   functionName: 'test-fn',
   deploy: {
-    files: [ 'package*.json', 'dist/**/*.js' ],
+    files: [ 'package*.json', 'dist/**' ],
     handler: 'dist/index.handler',
     runtime: 'nodejs14',
     timeout: 5,
