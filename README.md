@@ -3,12 +3,12 @@ CLI для деплоя функций в Yandex Cloud.
 
 ## Зачем
 Отличия от связки [serverless framework](https://github.com/serverless/serverless) + [yandex-cloud-serverless-plugin](https://github.com/yandex-cloud/serverless-plugin):
-* ✅ Более быстрый деплой
-* ✅ Удаление devDependencies
-* ✅ Нет лишних сообщений в логах вида `Serverless: Unknonwn function "xxx" found` ([#18](https://github.com/yandex-cloud/serverless-plugin/issues/18))
-* ✅ Нет зависимости на yc cli ([#13](https://github.com/yandex-cloud/serverless-plugin/issues/13))
-* ✅ Интерактивное выставление тегов
-- ❌ Деплоится только одна функция. Триггеры, сервисные аккаунты и message queue не создаются автоматически
+* ✅ &nbsp;Более быстрый деплой
+* ✅ &nbsp;Нет зависимости на yc cli ([#13](https://github.com/yandex-cloud/serverless-plugin/issues/13))
+* ✅ &nbsp;Нет лишних сообщений в логах вида `Serverless: Unknonwn function "xxx" found` ([#18](https://github.com/yandex-cloud/serverless-plugin/issues/18))
+* ✅ &nbsp;Удаление devDependencies
+* ✅ &nbsp;Интерактивное перекидывание тегов
+- ❌ &nbsp;Деплоится только одна функция. Триггеры, сервисные аккаунты и message queue не создаются
 
 ## Установка
 ```
@@ -34,7 +34,7 @@ module.exports = {
       NODE_ENV: 'production'
     },
   },
-  tags: [ 'prod', 'testing' ]
+  tags: [ 'prod', 'testing' ] // необязательно
 };
 ```
 
