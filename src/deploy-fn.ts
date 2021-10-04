@@ -49,6 +49,7 @@ export class DeployFn {
   async run() {
     logger.log(`Deploying function "${this.config.functionName}"...`);
     await this.createZip();
+    this.assertHandler();
     await this.fillServiceAccountId();
     await this.fillFunctionId();
     await this.createFunctionVersion();
@@ -142,6 +143,13 @@ export class DeployFn {
         envMap.set(key, value);
       });
     }
+  }
+
+  private assertHandler() {
+    const { handler } = this.deployConfig;
+    const handlerFile = handler.split('.').slice(0, -1).concat([ 'js' ]).join('.');
+    const pkgEntry = this.zip.getEntries().find(entry => entry.entryName === handlerFile);
+    if (!pkgEntry) throw new Error(`Handler file not found in zip: ${handler}`);
   }
 
   private getDeployConfig() {

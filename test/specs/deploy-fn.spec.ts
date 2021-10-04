@@ -14,6 +14,13 @@ describe('deploy-fn', () => {
     const d = getDeployFn(config);
     await assert.rejects(d.run(), /Error: Undefined env var: ABC/);
   });
+
+  it('throw if handler not found in zip', async () => {
+    const config = getConfig();
+    config.deploy!.handler = 'path/to/index.handler';
+    const d = getDeployFn(config);
+    await assert.rejects(d.run(), /Error: Handler file not found in zip: path\/to\/index\.handler/);
+  });
 });
 
 function getConfig(): Config {
@@ -22,8 +29,8 @@ function getConfig(): Config {
     folderId: 'YC_FOLDER_ID',
     functionName: 'test-fn',
     deploy: {
-      files: [ 'package*.json' ],
-      handler: 'dist/index.handler',
+      files: [ 'example/package*.json', 'example/dist/**' ],
+      handler: 'example/dist/index.handler',
       runtime: 'nodejs14',
       timeout: 5,
       memory: 128,
