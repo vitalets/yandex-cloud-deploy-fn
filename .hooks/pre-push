@@ -5,3 +5,4 @@
 set -euo pipefail
 
 npm run lint
+npm t
