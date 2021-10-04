@@ -104,7 +104,7 @@ export class DeployFn {
 
   // eslint-disable-next-line max-statements
   private buildCreateFunctionVersionRequest() {
-    const { handler, runtime, timeout, memory, environment } = this.deployConfig;
+    const { handler, runtime, timeout, memory } = this.deployConfig;
     const req = new CreateFunctionVersionRequest();
     req.setFunctionId(this.functionId);
     req.setEntrypoint(handler);
