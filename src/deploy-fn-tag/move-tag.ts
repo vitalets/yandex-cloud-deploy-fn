@@ -8,6 +8,7 @@ import { runCmd } from '../utils/run-cmd';
 
 export class MoveTag {
   curVersion?: Version;
+  isSameVersion = false;
   isRollback = false;
 
   constructor(private tag: Tag, private newVersion: Version, private versionsManager: VersionsManager) { }
@@ -17,7 +18,7 @@ export class MoveTag {
    */
    async run() {
     await this.moveMainTag();
-    if (this.curVersion && !this.isRollback) {
+    if (this.curVersion && !this.isSameVersion && !this.isRollback) {
       await this.moveHistoryTags();
     }
     this.logDone();
@@ -27,6 +28,7 @@ export class MoveTag {
     const { name } = this.tag;
     this.curVersion = this.versionsManager.findByTag(name);
     if (this.curVersion?.id === this.newVersion.id) {
+      this.isSameVersion = true;
       logger.log(`Tag "${name}" already on version: ${this.newVersion.id}`);
       return;
     }
