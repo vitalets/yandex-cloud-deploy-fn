@@ -112,9 +112,7 @@ export class DeployFn {
     req.setExecutionTimeout(new Duration().setSeconds(timeout));
     req.setResources(new Resources().setMemory(memory * 1024 * 1024));
     this.serviceAccountId && req.setServiceAccountId(this.serviceAccountId);
-    if (environment) {
-      Object.keys(environment).forEach(key => req.getEnvironmentMap().set(key, environment[key]));
-    }
+    this.setEnvVars(req);
     req.setContent(this.zip.toBuffer());
     // todo: set tags
     return req;
@@ -132,6 +130,18 @@ export class DeployFn {
     const res = await this.session.waitOperation(operation, CreateFunctionMetadata);
     logger.log(`Function created: ${res.getFunctionId()}`);
     return res.getFunctionId();
+  }
+
+  private setEnvVars(req: CreateFunctionVersionRequest) {
+    const { environment } = this.deployConfig;
+    if (environment) {
+      const envMap = req.getEnvironmentMap();
+      Object.keys(environment).forEach(key => {
+        const value = environment[key];
+        if (value === undefined) throw new Error(`Undefined env var: ${key}`);
+        envMap.set(key, value);
+      });
+    }
   }
 
   private getDeployConfig() {
