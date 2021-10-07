@@ -9,7 +9,7 @@ export class Logger {
   logger: consoleLogLevel.Logger;
 
   constructor() {
-    this.logger = consoleLogLevel({ prefix: '[deploy-fn]', level: logLevel as LogLevelNames });
+    this.logger = consoleLogLevel({ prefix: '[deploy-fn]:', level: logLevel as LogLevelNames });
   }
 
   logError(e: Error) {
