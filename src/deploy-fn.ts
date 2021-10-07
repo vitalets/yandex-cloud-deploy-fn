@@ -20,6 +20,7 @@ import {
 import { Resources } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_pb';
 import { Config } from './config';
 import { logger } from './utils/logger';
+import { formatBytes } from './utils';
 
 export interface DeployConfig {
   files: string | string[],
@@ -38,6 +39,7 @@ export class DeployFn {
   zip: AdmZip;
   functionId = '';
   serviceAccountId = '';
+  functionVersionId = '';
 
   constructor(private config: Config) {
     this.deployConfig = this.getDeployConfig();
@@ -53,6 +55,7 @@ export class DeployFn {
     await this.fillServiceAccountId();
     await this.fillFunctionId();
     await this.createFunctionVersion();
+    await this.showVersionSize();
     logger.log(`Done.`);
   }
 
@@ -100,7 +103,8 @@ export class DeployFn {
       maxDelay: 1000,
       numOfAttempts: 60,
     });
-    logger.log(`Version created: ${res.getFunctionVersionId()}`);
+    this.functionVersionId = res.getFunctionVersionId();
+    logger.log(`Version created: ${this.functionVersionId}`);
   }
 
   // eslint-disable-next-line max-statements
@@ -143,6 +147,12 @@ export class DeployFn {
         envMap.set(key, value);
       });
     }
+  }
+
+  private async showVersionSize() {
+    const res = await this.api.getVersion({ functionVersionId: this.functionVersionId });
+    const { imageSize } = res.toObject();
+    logger.log(`Version size: ${formatBytes(imageSize)}`);
   }
 
   private assertHandler() {

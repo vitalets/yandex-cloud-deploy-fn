@@ -19,6 +19,7 @@
     "check:tag": "pushd example && ts-node ../src/bin/deploy-fn-tag; popd",
     "check:tag:d": "LOG_LEVEL=debug npm run check:tag",
     "test": "mocha -r ts-node/register test/setup.ts test/specs/*.ts",
+    "test:l": "LOG_LEVEL=info npm t",
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "release": "npm run lint && npm t && npm run build && npm version $VER && npm publish && git push --follow-tags --no-verify",
     "release-patch": "VER=patch npm run release",

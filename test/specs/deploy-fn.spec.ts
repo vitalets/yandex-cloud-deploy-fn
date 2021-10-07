@@ -46,5 +46,6 @@ function getDeployFn(config: Config) {
   sinon.stub(d.api, 'list').resolves({ toObject: () => ({ functionsList: [ { id: 'function-id' } ] })} as any);
   sinon.stub(d.api, 'createVersion').resolves({ getId: () => 'operation-id' } as any);
   sinon.stub(d.session, 'waitOperation').resolves({ getFunctionVersionId: () => 'version-id' } as any);
+  sinon.stub(d.api, 'getVersion').resolves({ toObject: () => ({ imageSize: 100 })} as any);
   return d;
 }
