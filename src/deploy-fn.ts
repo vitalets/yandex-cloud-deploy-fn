@@ -101,7 +101,7 @@ export class DeployFn {
     const res = await this.session.waitOperation(operation, CreateFunctionVersionMetadata, {
       startingDelay: 1000,
       maxDelay: 1000,
-      numOfAttempts: 60,
+      numOfAttempts: 3 * 60, // 3 mminutes
     });
     this.functionVersionId = res.getFunctionVersionId();
     logger.log(`Version created: ${this.functionVersionId}`);
