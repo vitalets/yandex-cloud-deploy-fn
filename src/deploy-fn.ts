@@ -102,6 +102,14 @@ export class DeployFn {
       startingDelay: 1000,
       maxDelay: 1000,
       numOfAttempts: 3 * 60, // 3 mminutes
+      retry: (e, attempt) => {
+        const isRetry = e.message === 'operation-not-done';
+        if (!isRetry) {
+          // log this for debug why error pass here
+          logger.log(`Attempt: ${attempt}, isRetry: ${isRetry}, e.message: ${e.message}`);
+        }
+        return isRetry;
+      },
     });
     this.functionVersionId = res.getFunctionVersionId();
     logger.log(`Version created: ${this.functionVersionId}`);
