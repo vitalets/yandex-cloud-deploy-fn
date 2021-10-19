@@ -1,8 +1,5 @@
-const { YC_OAUTH_TOKEN, YC_FOLDER_ID } = require('../.env');
-
 module.exports = {
-  oauthToken: YC_OAUTH_TOKEN,
-  folderId: YC_FOLDER_ID,
+  authKeyFile: '../.auth-key.json',
   functionName: 'test-fn',
   deploy: {
     files: [ 'package*.json', 'dist/**' ],

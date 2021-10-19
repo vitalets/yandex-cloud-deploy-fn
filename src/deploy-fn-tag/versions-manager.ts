@@ -17,15 +17,17 @@ export class VersionsManager {
   session: Session;
   api: GrpcPromisedClient<FunctionServiceClient>;
   functionId = '';
+  folderId = '';
   items: Version[] = [];
 
   constructor(private config: Config, private filteringTags: string[]) {
-    this.session = new Session({ oauthToken: config.oauthToken });
+    this.session = this.createSession();
     this.api = this.session.createClient(FunctionServiceClient);
   }
 
   async load() {
-    !this.functionId && await this.fillFunctionId();
+    if (!this.folderId) await this.fillFolderId();
+    if (!this.functionId) await this.fillFunctionId();
     await this.loadVersions();
   }
 
@@ -50,11 +52,30 @@ export class VersionsManager {
   }
 
   private async fillFunctionId() {
-    const filter = `name="${this.config.functionName}"`;
-    const res = await this.api.list({ folderId: this.config.folderId, filter });
+    const { functionName } = this.config;
+    const filter = `name="${functionName}"`;
+    const res = await this.api.list({ folderId: this.folderId, filter });
     const { functionsList } = res.toObject();
-    if (!functionsList.length) throw new Error(`Function not found: ${this.config.functionName}`);
+    if (!functionsList.length) throw new Error(`Function not found: ${functionName}`);
     this.functionId = functionsList[0].id;
+  }
+
+  private async fillFolderId() {
+    const { authKeyFile, folderId } = this.config;
+    if (folderId) {
+      this.folderId = folderId;
+    } else if (authKeyFile) {
+      this.folderId = (await this.session.getServiceAccount())!.folderId;
+    } else {
+      throw new Error(`You should provide "folderId" when using "oauthToken"`);
+    }
+  }
+
+  private createSession() {
+    const { authKeyFile, oauthToken } = this.config;
+    if (authKeyFile) return new Session({ authKeyFile });
+    if (oauthToken) return new Session({ oauthToken });
+    throw new Error(`You should provide "authKeyFile" or "oauthToken"`);
   }
 }
 

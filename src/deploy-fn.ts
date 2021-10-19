@@ -2,6 +2,8 @@
  * Deploy cloud function.
  */
 
+/* eslint-disable max-lines */
+
 import path from 'path';
 import fg from 'fast-glob';
 import AdmZip from 'adm-zip';
@@ -40,10 +42,11 @@ export class DeployFn {
   functionId = '';
   serviceAccountId = '';
   functionVersionId = '';
+  folderId = '';
 
   constructor(private config: Config) {
     this.deployConfig = this.getDeployConfig();
-    this.session = new Session({ oauthToken: this.config.oauthToken });
+    this.session = this.createSession();
     this.api = this.session.createClient(FunctionServiceClient);
     this.zip = new AdmZip();
   }
@@ -52,6 +55,7 @@ export class DeployFn {
     logger.log(`Deploying function "${this.config.functionName}"...`);
     await this.createZip();
     this.assertHandler();
+    await this.fillFolderId();
     await this.fillServiceAccountId();
     await this.fillFunctionId();
     await this.createFunctionVersion();
@@ -71,7 +75,7 @@ export class DeployFn {
     if (account) {
       const accountsApi = this.session.createClient(ServiceAccountServiceClient);
       const filter = `name="${account}"`;
-      const res = await accountsApi.list({ folderId: this.config.folderId, filter });
+      const res = await accountsApi.list({ folderId: this.folderId, filter });
       const { serviceAccountsList } = res.toObject();
       if (!serviceAccountsList.length) throw new Error(`Service account "${account}" not found.`);
       this.serviceAccountId = serviceAccountsList[0].id;
@@ -80,6 +84,17 @@ export class DeployFn {
 
   private async fillFunctionId() {
     this.functionId = await this.getFunctionId() || await this.createFunction();
+  }
+
+  private async fillFolderId() {
+    const { authKeyFile, folderId } = this.config;
+    if (folderId) {
+      this.folderId = folderId;
+    } else if (authKeyFile) {
+      this.folderId = (await this.session.getServiceAccount())!.folderId;
+    } else {
+      throw new Error(`You should provide "folderId" when using "oauthToken"`);
+    }
   }
 
   private removeDevDependencies() {
@@ -133,15 +148,16 @@ export class DeployFn {
 
   private async getFunctionId() {
     const filter = `name="${this.config.functionName}"`;
-    const res = await this.api.list({ folderId: this.config.folderId, filter });
+    const res = await this.api.list({ folderId: this.folderId, filter });
     const { functionsList } = res.toObject();
     return functionsList.length && functionsList[0].id;
   }
 
   private async createFunction() {
-    const operation = await this.api.create({ folderId: this.config.folderId, name: this.config.functionName });
+    const { functionName } = this.config;
+    logger.log(`Creating function: ${functionName}`);
+    const operation = await this.api.create({ folderId: this.folderId, name: functionName });
     const res = await this.session.waitOperation(operation, CreateFunctionMetadata);
-    logger.log(`Function created: ${res.getFunctionId()}`);
     return res.getFunctionId();
   }
 
@@ -170,7 +186,15 @@ export class DeployFn {
     if (!pkgEntry) throw new Error(`Handler file not found in zip: ${handler}`);
   }
 
+  private createSession() {
+    const { authKeyFile, oauthToken } = this.config;
+    if (authKeyFile) return new Session({ authKeyFile });
+    if (oauthToken) return new Session({ oauthToken });
+    throw new Error(`You should provide "authKeyFile" or "oauthToken"`);
+  }
+
   private getDeployConfig() {
+    if (!this.config.functionName) throw new Error(`Empty config.functionName`);
     if (!this.config.deploy) throw new Error(`Empty config.deploy`);
     return this.config.deploy;
   }

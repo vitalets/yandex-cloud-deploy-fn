@@ -16,13 +16,15 @@ npm i -D yandex-cloud-deploy-fn
 ```
 
 ## Использование
+Сгенерите файл [авторизованных ключей](https://cloud.yandex.ru/docs/iam/operations/authorized-key/create) `auth-key.json` для сервисного аккаунта, от имени которого будете деплоить функцию:
+```
+yc iam key create --service-account-name <service-account-name> -o auth-key.json
+```
+
 Создайте в корне проекта конфиг `deploy.config.js` следующего вида:
 ```js
-const { YC_OAUTH_TOKEN, YC_FOLDER_ID } = process.env;
-
 module.exports = {
-  oauthToken: YC_OAUTH_TOKEN,
-  folderId: YC_FOLDER_ID,
+  authKeyFile: 'auth-key.json',
   functionName: 'test-fn',
   deploy: {
     files: [ 'package*.json', 'dist/**' ],

@@ -25,8 +25,7 @@ describe('deploy-fn', () => {
 
 function getConfig(): Config {
   return {
-    oauthToken: 'YC_OAUTH_TOKEN',
-    folderId: 'YC_FOLDER_ID',
+    authKeyFile: 'fake-file.json',
     functionName: 'test-fn',
     deploy: {
       files: [ 'example/package*.json', 'example/dist/**' ],
@@ -45,6 +44,7 @@ function getDeployFn(config: Config) {
   const d = new DeployFn(config);
   sinon.stub(d.api, 'list').resolves({ toObject: () => ({ functionsList: [ { id: 'function-id' } ] })} as any);
   sinon.stub(d.api, 'createVersion').resolves({ getId: () => 'operation-id' } as any);
+  sinon.stub(d.session, 'getServiceAccount').resolves({ toObject: () => ({ folderId: 'folder-id' })} as any);
   sinon.stub(d.session, 'waitOperation').resolves({ getFunctionVersionId: () => 'version-id' } as any);
   sinon.stub(d.api, 'getVersion').resolves({ toObject: () => ({ imageSize: 100 })} as any);
   return d;
