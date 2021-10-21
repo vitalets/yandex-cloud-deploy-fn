@@ -39,6 +39,7 @@ export class DeployFn {
   serviceAccountId = '';
   functionVersionId = '';
   folderId = '';
+  startTime = 0;
 
   constructor(private config: Config) {
     this.deployConfig = this.getDeployConfig();
@@ -48,14 +49,14 @@ export class DeployFn {
   }
 
   async run() {
-    logger.log(`Deploying function "${this.config.functionName}"...`);
+    this.logStart();
     await this.zip.create();
     await this.fillFolderId();
     await this.fillServiceAccountId();
     await this.fillFunctionId();
     await this.createFunctionVersion();
     await this.showVersionSize();
-    logger.log(`Done.`);
+    this.logDone();
   }
 
   private async fillServiceAccountId() {
@@ -153,5 +154,15 @@ export class DeployFn {
     if (!this.config.functionName) throw new Error(`Empty config.functionName`);
     if (!this.config.deploy) throw new Error(`Empty config.deploy`);
     return this.config.deploy;
+  }
+
+  private logStart() {
+    logger.log(`Deploying function "${this.config.functionName}"...`);
+    this.startTime = Date.now();
+  }
+
+  private logDone() {
+    const duration = Math.round((Date.now() - this.startTime) / 1000);
+    logger.log(`Done (${duration}s).`);
   }
 }
