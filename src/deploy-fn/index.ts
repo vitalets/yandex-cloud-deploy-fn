@@ -3,10 +3,6 @@
  */
 
 /* eslint-disable max-lines */
-
-import path from 'path';
-import fg from 'fast-glob';
-import AdmZip from 'adm-zip';
 import { Session, GrpcPromisedClient, Duration } from 'yandex-cloud-lite';
 import {
   FunctionServiceClient
@@ -20,9 +16,10 @@ import {
   CreateFunctionMetadata,
 } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_service_pb';
 import { Resources } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_pb';
-import { Config } from './config';
-import { logger } from './utils/logger';
-import { formatBytes } from './utils';
+import { Config } from '../config';
+import { logger } from '../utils/logger';
+import { formatBytes } from '../utils';
+import { Zip } from './zip';
 
 export interface DeployConfig {
   files: string | string[],
@@ -38,7 +35,7 @@ export class DeployFn {
   deployConfig: DeployConfig;
   session: Session;
   api: GrpcPromisedClient<FunctionServiceClient>;
-  zip: AdmZip;
+  zip: Zip;
   functionId = '';
   serviceAccountId = '';
   functionVersionId = '';
@@ -48,26 +45,18 @@ export class DeployFn {
     this.deployConfig = this.getDeployConfig();
     this.session = this.createSession();
     this.api = this.session.createClient(FunctionServiceClient);
-    this.zip = new AdmZip();
+    this.zip = new Zip(this.deployConfig);
   }
 
   async run() {
     logger.log(`Deploying function "${this.config.functionName}"...`);
-    await this.createZip();
-    this.assertHandler();
+    await this.zip.create();
     await this.fillFolderId();
     await this.fillServiceAccountId();
     await this.fillFunctionId();
     await this.createFunctionVersion();
     await this.showVersionSize();
     logger.log(`Done.`);
-  }
-
-  private async createZip() {
-    logger.log(`Creating zip...`);
-    const files = await fg(this.deployConfig.files, { dot: true });
-    files.forEach(file => this.zip.addLocalFile(file, path.dirname(file)));
-    this.removeDevDependencies();
   }
 
   private async fillServiceAccountId() {
@@ -94,17 +83,6 @@ export class DeployFn {
       this.folderId = (await this.session.getServiceAccount())!.folderId;
     } else {
       throw new Error(`You should provide "folderId" when using "oauthToken"`);
-    }
-  }
-
-  private removeDevDependencies() {
-    const pkgEntry = this.zip.getEntries().find(entry => entry.name === 'package.json');
-    if (pkgEntry) {
-      logger.log(`Removing devDependencies (${pkgEntry.entryName})...`);
-      const pkgContent = this.zip.readAsText(pkgEntry);
-      const pkg = JSON.parse(pkgContent);
-      delete pkg.devDependencies;
-      this.zip.updateFile(pkgEntry, Buffer.from(JSON.stringify(pkg, null, 2)));
     }
   }
 
@@ -177,13 +155,6 @@ export class DeployFn {
     const res = await this.api.getVersion({ functionVersionId: this.functionVersionId });
     const { imageSize } = res.toObject();
     logger.log(`Version size: ${formatBytes(imageSize)}`);
-  }
-
-  private assertHandler() {
-    const { handler } = this.deployConfig;
-    const handlerFile = handler.split('.').slice(0, -1).concat([ 'js' ]).join('.');
-    const pkgEntry = this.zip.getEntries().find(entry => entry.entryName === handlerFile);
-    if (!pkgEntry) throw new Error(`Handler file not found in zip: ${handler}`);
   }
 
   private createSession() {
