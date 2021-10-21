@@ -6,7 +6,6 @@ CLI для деплоя функций в Yandex Cloud.
 * ✅ &nbsp;Более быстрый деплой
 * ✅ &nbsp;Нет зависимости на yc cli ([#13](https://github.com/yandex-cloud/serverless-plugin/issues/13))
 * ✅ &nbsp;Нет лишних сообщений в логах вида `Serverless: Unknonwn function "xxx" found` ([#18](https://github.com/yandex-cloud/serverless-plugin/issues/18))
-* ✅ &nbsp;Удаление devDependencies
 * ✅ &nbsp;Интерактивное перекидывание тегов
 - ❌ &nbsp;Деплоится только одна функция. Триггеры, сервисные аккаунты и message queue не создаются
 

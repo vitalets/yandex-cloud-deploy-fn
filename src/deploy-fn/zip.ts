@@ -17,7 +17,6 @@ export class Zip {
   async create() {
     await this.archiveFiles();
     this.assertHandlerExists();
-    this.removeDevDependencies();
   }
 
   toBuffer() {
@@ -28,17 +27,6 @@ export class Zip {
     logger.log(`Creating zip...`);
     const files = await fg(this.deployConfig.files, { dot: true });
     files.forEach(file => this.zip.addLocalFile(file, path.dirname(file)));
-  }
-
-  private removeDevDependencies() {
-    const pkgEntry = this.zip.getEntries().find(entry => entry.name === 'package.json');
-    if (pkgEntry) {
-      logger.log(`Removing devDependencies (${pkgEntry.entryName})...`);
-      const pkgContent = this.zip.readAsText(pkgEntry);
-      const pkg = JSON.parse(pkgContent);
-      delete pkg.devDependencies;
-      this.zip.updateFile(pkgEntry, Buffer.from(JSON.stringify(pkg, null, 2)));
-    }
   }
 
   private assertHandlerExists() {
