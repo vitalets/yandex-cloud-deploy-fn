@@ -4,7 +4,7 @@
 import path from 'path';
 import fg from 'fast-glob';
 import AdmZip from 'adm-zip';
-import { logger } from '../utils/logger';
+import { logger } from '../helpers/logger';
 import { Config } from '../config';
 
 export class Zip {

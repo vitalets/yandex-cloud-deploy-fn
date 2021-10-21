@@ -17,8 +17,8 @@ import {
 } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_service_pb';
 import { Resources } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_pb';
 import { Config } from '../config';
-import { logger } from '../utils/logger';
-import { formatBytes } from '../utils';
+import { logger } from '../helpers/logger';
+import { formatBytes } from '../helpers';
 import { Zip } from './zip';
 
 export interface DeployConfig {

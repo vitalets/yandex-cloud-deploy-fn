@@ -1,10 +1,10 @@
 /**
  * Move single tag (with history tags).
  */
-import { logger } from '../utils/logger';
+import { logger } from '../helpers/logger';
 import { Tag } from './tags-manager';
 import { Version, VersionsManager } from './versions-manager';
-import { runCmd } from '../utils/run-cmd';
+import { runCmd } from '../helpers/run-cmd';
 
 export class MoveTag {
   curVersion?: Version;

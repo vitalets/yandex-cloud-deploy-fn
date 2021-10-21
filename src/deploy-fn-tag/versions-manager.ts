@@ -6,7 +6,7 @@ import {
   SetFunctionTagMetadata
 } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_service_pb';
 import { Config } from '../config';
-import { logger } from '../utils/logger';
+import { logger } from '../helpers/logger';
 
 export interface Version {
   id: string;

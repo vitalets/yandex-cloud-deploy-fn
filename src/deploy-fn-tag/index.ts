@@ -5,7 +5,7 @@ import { selectVersion } from './select-version';
 import { selectTag } from './select-tag';
 import { TagsManager, Tag, isGroupTag } from './tags-manager';
 import { VersionsManager, Version, formatVersion } from './versions-manager';
-import { logger } from '../utils/logger';
+import { logger } from '../helpers/logger';
 import { Config } from '../config';
 import { MoveTag } from './move-tag';
 
