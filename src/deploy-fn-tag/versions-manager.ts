@@ -7,6 +7,7 @@ import {
 } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_service_pb';
 import { Config } from '../config';
 import { logger } from '../helpers/logger';
+import { createSession, getFolderId } from '../helpers/session';
 
 export interface Version {
   id: string;
@@ -21,7 +22,7 @@ export class VersionsManager {
   items: Version[] = [];
 
   constructor(private config: Config, private filteringTags: string[]) {
-    this.session = this.createSession();
+    this.session = createSession(config);
     this.api = this.session.createClient(FunctionServiceClient);
   }
 
@@ -61,21 +62,7 @@ export class VersionsManager {
   }
 
   private async fillFolderId() {
-    const { authKeyFile, folderId } = this.config;
-    if (folderId) {
-      this.folderId = folderId;
-    } else if (authKeyFile) {
-      this.folderId = (await this.session.getServiceAccount())!.folderId;
-    } else {
-      throw new Error(`You should provide "folderId" when using "oauthToken"`);
-    }
-  }
-
-  private createSession() {
-    const { authKeyFile, oauthToken } = this.config;
-    if (authKeyFile) return new Session({ authKeyFile });
-    if (oauthToken) return new Session({ oauthToken });
-    throw new Error(`You should provide "authKeyFile" or "oauthToken"`);
+    if (!this.folderId) this.folderId = await getFolderId(this.session, this.config);
   }
 }
 

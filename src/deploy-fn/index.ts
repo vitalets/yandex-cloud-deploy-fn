@@ -1,8 +1,6 @@
 /**
  * Deploy cloud function.
  */
-
-/* eslint-disable max-lines */
 import { Session, GrpcPromisedClient, Duration } from 'yandex-cloud-lite';
 import {
   FunctionServiceClient
@@ -19,6 +17,7 @@ import { Resources } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/f
 import { Config } from '../config';
 import { logger } from '../helpers/logger';
 import { formatBytes } from '../helpers';
+import { createSession, getFolderId } from '../helpers/session';
 import { Zip } from './zip';
 
 export interface DeployConfig {
@@ -43,7 +42,7 @@ export class DeployFn {
 
   constructor(private config: Config) {
     this.deployConfig = this.getDeployConfig();
-    this.session = this.createSession();
+    this.session = createSession(config);
     this.api = this.session.createClient(FunctionServiceClient);
     this.zip = new Zip(this.deployConfig);
   }
@@ -76,14 +75,7 @@ export class DeployFn {
   }
 
   private async fillFolderId() {
-    const { authKeyFile, folderId } = this.config;
-    if (folderId) {
-      this.folderId = folderId;
-    } else if (authKeyFile) {
-      this.folderId = (await this.session.getServiceAccount())!.folderId;
-    } else {
-      throw new Error(`You should provide "folderId" when using "oauthToken"`);
-    }
+    if (!this.folderId) this.folderId = await getFolderId(this.session, this.config);
   }
 
   private async createFunctionVersion() {
@@ -155,13 +147,6 @@ export class DeployFn {
     const res = await this.api.getVersion({ functionVersionId: this.functionVersionId });
     const { imageSize } = res.toObject();
     logger.log(`Version size: ${formatBytes(imageSize)}`);
-  }
-
-  private createSession() {
-    const { authKeyFile, oauthToken } = this.config;
-    if (authKeyFile) return new Session({ authKeyFile });
-    if (oauthToken) return new Session({ oauthToken });
-    throw new Error(`You should provide "authKeyFile" or "oauthToken"`);
   }
 
   private getDeployConfig() {
