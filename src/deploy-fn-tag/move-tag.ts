@@ -4,7 +4,7 @@
 import { logger } from '../helpers/logger';
 import { Tag } from './tags-manager';
 import { Version, VersionsManager } from './versions-manager';
-import { runCmd } from '../helpers/run-cmd';
+import { runCmd } from '../helpers/cmd';
 
 export class MoveTag {
   curVersion?: Version;
