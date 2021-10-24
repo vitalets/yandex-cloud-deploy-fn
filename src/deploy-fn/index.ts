@@ -52,8 +52,10 @@ export class DeployFn {
     this.logStart();
     await this.zip.create();
     await this.fillFolderId();
-    await this.fillServiceAccountId();
-    await this.fillFunctionId();
+    await Promise.all([
+      this.fillServiceAccountId(),
+      this.fillFunctionId(),
+    ]);
     await this.createFunctionVersion();
     await this.showVersionSize();
     this.logDone();
