@@ -1,4 +1,4 @@
-import { Session, GrpcPromisedClient } from 'yandex-cloud-lite';
+import { GrpcPromisedClient } from 'yandex-cloud-lite';
 import {
   FunctionServiceClient
 } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_service_grpc_pb';
@@ -7,7 +7,7 @@ import {
 } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_service_pb';
 import { Config } from '../config';
 import { logger } from '../helpers/logger';
-import { createSession, getFolderId } from '../helpers/session';
+import { SessionHelper } from '../helpers/session';
 
 export interface Version {
   id: string;
@@ -15,19 +15,26 @@ export interface Version {
 }
 
 export class VersionsManager {
-  session: Session;
+  sessionHelper: SessionHelper;
   api: GrpcPromisedClient<FunctionServiceClient>;
   functionId = '';
-  folderId = '';
   items: Version[] = [];
 
   constructor(private config: Config, private filteringTags: string[]) {
-    this.session = createSession(config);
+    this.sessionHelper = new SessionHelper(config);
     this.api = this.session.createClient(FunctionServiceClient);
   }
 
+  get session() {
+    return this.sessionHelper.session;
+  }
+
+  get folderId() {
+    return this.sessionHelper.folderId;
+  }
+
   async load() {
-    if (!this.folderId) await this.fillFolderId();
+    if (!this.folderId) await this.sessionHelper.init();
     if (!this.functionId) await this.fillFunctionId();
     await this.loadVersions();
   }
@@ -59,10 +66,6 @@ export class VersionsManager {
     const { functionsList } = res.toObject();
     if (!functionsList.length) throw new Error(`Function not found: ${functionName}`);
     this.functionId = functionsList[0].id;
-  }
-
-  private async fillFolderId() {
-    if (!this.folderId) this.folderId = await getFolderId(this.session, this.config);
   }
 }
 

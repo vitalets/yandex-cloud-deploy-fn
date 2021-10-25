@@ -1,7 +1,10 @@
 /**
  * Deploy cloud function.
  */
-import { Session, GrpcPromisedClient, Duration } from 'yandex-cloud-lite';
+
+/* eslint-disable max-lines */
+
+import { GrpcPromisedClient, Duration } from 'yandex-cloud-lite';
 import {
   FunctionServiceClient
 } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_service_grpc_pb';
@@ -17,7 +20,7 @@ import { Resources } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/f
 import { Config } from '../config';
 import { logger } from '../helpers/logger';
 import { formatBytes } from '../helpers';
-import { createSession, getFolderId } from '../helpers/session';
+import { SessionHelper } from '../helpers/session';
 import { Zip } from './zip';
 
 export interface DeployConfig {
@@ -32,26 +35,33 @@ export interface DeployConfig {
 
 export class DeployFn {
   deployConfig: DeployConfig;
-  session: Session;
+  sessionHelper: SessionHelper;
   api: GrpcPromisedClient<FunctionServiceClient>;
   zip: Zip;
   functionId = '';
   serviceAccountId = '';
   functionVersionId = '';
-  folderId = '';
   startTime = 0;
 
   constructor(private config: Config) {
     this.deployConfig = this.getDeployConfig();
-    this.session = createSession(config);
+    this.sessionHelper = new SessionHelper(config);
     this.api = this.session.createClient(FunctionServiceClient);
     this.zip = new Zip(this.deployConfig);
+  }
+
+  get session() {
+    return this.sessionHelper.session;
+  }
+
+  get folderId() {
+    return this.sessionHelper.folderId;
   }
 
   async run() {
     this.logStart();
     await this.zip.create();
-    await this.fillFolderId();
+    await this.fillSessionInfo();
     await Promise.all([
       this.fillServiceAccountId(),
       this.fillFunctionId(),
@@ -73,12 +83,14 @@ export class DeployFn {
     }
   }
 
-  private async fillFunctionId() {
-    this.functionId = await this.getFunctionId() || await this.createFunction();
+  private async fillSessionInfo() {
+    await this.sessionHelper.init();
+    const { serviceAccountName } = this.sessionHelper;
+    if (serviceAccountName) logger.log(`Using service account: ${serviceAccountName}`);
   }
 
-  private async fillFolderId() {
-    if (!this.folderId) this.folderId = await getFolderId(this.session, this.config);
+  private async fillFunctionId() {
+    this.functionId = await this.getFunctionId() || await this.createFunction();
   }
 
   private async createFunctionVersion() {
