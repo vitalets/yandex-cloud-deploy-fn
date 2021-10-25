@@ -3,7 +3,6 @@ CLI для деплоя функций в Yandex Cloud.
 
 ## Зачем
 Отличия от связки [serverless framework](https://github.com/serverless/serverless) + [yandex-cloud-serverless-plugin](https://github.com/yandex-cloud/serverless-plugin):
-* ✅ &nbsp;Более быстрый деплой
 * ✅ &nbsp;Нет зависимости на yc cli ([#13](https://github.com/yandex-cloud/serverless-plugin/issues/13))
 * ✅ &nbsp;Нет лишних сообщений в логах вида `Serverless: Unknonwn function "xxx" found` ([#18](https://github.com/yandex-cloud/serverless-plugin/issues/18))
 * ✅ &nbsp;Интерактивное перекидывание тегов
