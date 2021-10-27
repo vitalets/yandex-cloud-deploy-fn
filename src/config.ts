@@ -2,13 +2,17 @@
  * Load deploy.config.js
  */
 import path from 'path';
+import { Session } from 'yandex-cloud-lite';
 import { TagConfig } from './deploy-fn-tag/tags-manager';
 import { DeployConfig } from './deploy-fn';
 
+type SessionOptions = Session['options'];
+
 export interface Config {
-  authKeyFile?: string;
-  oauthToken?: string;
-  folderId?: string;
+  authKeyFile?: SessionOptions['authKeyFile'];
+  oauthToken?: SessionOptions['oauthToken'];
+  folderId?: SessionOptions['folderId'];
+  useCliConfig?: SessionOptions['useCliConfig'];
   functionName: string;
   deploy?: DeployConfig;
   tags?: (string | TagConfig)[];
