@@ -44,8 +44,8 @@ function getDeployFn(config: Config) {
   const d = new DeployFn(config);
   sinon.stub(d.api, 'list').resolves({ toObject: () => ({ functionsList: [ { id: 'function-id' } ] })} as any);
   sinon.stub(d.api, 'createVersion').resolves({ getId: () => 'operation-id' } as any);
-  sinon.stub(d.session, 'getFolderId').resolves({ toObject: () => ({ folderId: 'folder-id' })} as any);
-  sinon.stub(d.session, 'getServiceAccount').resolves({ toObject: () => ({ name: 'sa-name' })} as any);
+  sinon.stub(d.session, 'getFolderId').resolves('folder-id');
+  sinon.stub(d.session, 'getServiceAccount').resolves({ name: 'sa-name' } as any);
   sinon.stub(d.session, 'waitOperation').resolves({ getFunctionVersionId: () => 'version-id' } as any);
   sinon.stub(d.api, 'getVersion').resolves({ toObject: () => ({ imageSize: 100 })} as any);
   return d;

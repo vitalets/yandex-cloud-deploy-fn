@@ -21,6 +21,7 @@ import { Config } from '../config';
 import { logger } from '../helpers/logger';
 import { formatBytes } from '../helpers';
 import { Zip } from './zip';
+import { getAuthInfo } from '../helpers/auth-info';
 
 export interface DeployConfig {
   files: string | string[],
@@ -55,7 +56,7 @@ export class DeployFn {
     await this.zip.create();
     await Promise.all([
       this.fillFolderId(),
-      this.logSessionServiceAccount(),
+      this.logAuthInfo(),
     ]);
     await Promise.all([
       this.fillServiceAccountId(),
@@ -78,9 +79,9 @@ export class DeployFn {
     }
   }
 
-  private async logSessionServiceAccount() {
-    const sa = await this.session.getServiceAccount();
-    if (sa) logger.log(`Service account: ${sa.name}`);
+  private async logAuthInfo() {
+    const authInfo = await getAuthInfo(this.session);
+    logger.log(`Authorized by: ${authInfo}`);
   }
 
   private async fillFolderId() {
