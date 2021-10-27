@@ -37,15 +37,43 @@ module.exports = {
   tags: [ 'prod', 'testing' ] // необязательно
 };
 ```
+> Возможны другие [способы авторизации](https://github.com/vitalets/yandex-cloud-lite#создание-сессии)
 
 Для деплоя функции запустите:
 ```
 npx deploy-fn
 ```
+Пример вывода:
+```
+[deploy-fn]: Deploying function "test-fn"...
+[deploy-fn]: Creating zip...
+[deploy-fn]: Authorized by: authKeyFile (test-sa)
+[deploy-fn]: Sending API request...
+[deploy-fn]: Waiting operation complete...
+[deploy-fn]: Version created: d4e5qq24h0cpqg9rfmi3
+[deploy-fn]: Version size: 20 Kb
+[deploy-fn]: Done (25s).
+```
 
 Для интерактивного выставления тегов запустите:
 ```
 npx deploy-fn-tag
+```
+
+Пример вывода:
+```
+? Select version of "test-fn": (Use arrow keys)
+❯ d4e5qq24h0cpqg9rfmi3  $latest
+  d4ebrpdvjl50mtccr5pu  prod
+  d4eiuu6oc7thuu11v1jo  prod-1,testing
+  d4ecqudlemi9f2qijgh6  prod-2
+
+? Select tag: (Use arrow keys)
+❯ prod
+  testing
+  all (prod, testing)
+
+Set tag "testing" to version: d4e5qq24h0cpqg9rfmi3
 ```
 
 ## Лицензия
