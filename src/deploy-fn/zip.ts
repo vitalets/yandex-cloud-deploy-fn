@@ -4,7 +4,6 @@
 import path from 'path';
 import fg from 'fast-glob';
 import AdmZip from 'adm-zip';
-import { logger } from '../helpers/logger';
 import { Config } from '../config';
 
 export class Zip {
@@ -24,7 +23,6 @@ export class Zip {
   }
 
   private async archiveFiles() {
-    logger.log(`Creating zip...`);
     const files = await fg(this.deployConfig.files, { dot: true });
     files.forEach(file => this.zip.addLocalFile(file, path.dirname(file)));
   }

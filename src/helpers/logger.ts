@@ -8,8 +8,9 @@ const logLevel = process.env.LOG_LEVEL || 'info';
 export class Logger {
   logger: consoleLogLevel.Logger;
 
-  constructor() {
-    this.logger = consoleLogLevel({ prefix: '[deploy-fn]:', level: logLevel as LogLevelNames });
+  constructor(prefix?: string) {
+    if (prefix) prefix = `[${prefix}]:`;
+    this.logger = consoleLogLevel({ prefix, level: logLevel as LogLevelNames });
   }
 
   logError(e: Error) {
@@ -25,4 +26,5 @@ export class Logger {
   }
 }
 
+// default logger
 export const logger = new Logger();

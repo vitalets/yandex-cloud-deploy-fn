@@ -18,7 +18,7 @@ import {
 } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_service_pb';
 import { Resources } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_pb';
 import { Config } from '../config';
-import { logger } from '../helpers/logger';
+import { Logger } from '../helpers/logger';
 import { formatBytes } from '../helpers';
 import { Zip } from './zip';
 import { getAuthInfo } from '../helpers/auth-info';
@@ -44,17 +44,19 @@ export class DeployFn {
   serviceAccountId = '';
   functionVersionId = '';
   startTime = 0;
+  logger: Logger;
 
   constructor(private config: Config) {
     this.deployConfig = this.getDeployConfig();
     this.session = new Session(config);
     this.api = this.session.createClient(FunctionServiceClient);
     this.zip = new Zip(this.deployConfig);
+    this.logger = new Logger(config.functionName);
   }
 
   async run() {
     this.logStart();
-    await this.zip.create();
+    await this.createZip();
     await Promise.all([
       this.fillFolderId(),
       this.logAuthInfo(),
@@ -66,6 +68,11 @@ export class DeployFn {
     await this.createFunctionVersion();
     await this.showVersionSize();
     this.logDone();
+  }
+
+  private async createZip() {
+    this.logger.log(`Creating zip...`);
+    await this.zip.create();
   }
 
   private async fillServiceAccountId() {
@@ -82,7 +89,7 @@ export class DeployFn {
 
   private async logAuthInfo() {
     const authInfo = await getAuthInfo(this.session);
-    logger.log(`Authorized by: ${authInfo}`);
+    this.logger.log(`Authorized by: ${authInfo}`);
   }
 
   private async fillFolderId() {
@@ -96,9 +103,9 @@ export class DeployFn {
 
   private async createFunctionVersion() {
     const req = this.buildCreateFunctionVersionRequest();
-    logger.log(`Sending API request...`);
+    this.logger.log(`Sending API request...`);
     const operation = await this.api.createVersion(req);
-    logger.log(`Waiting operation complete...`);
+    this.logger.log(`Waiting operation complete...`);
     const res = await this.session.waitOperation(operation, CreateFunctionVersionMetadata, {
       startingDelay: 1000,
       maxDelay: 1000,
@@ -107,13 +114,13 @@ export class DeployFn {
         const isRetry = e.message === 'operation-not-done';
         if (!isRetry) {
           // log this for debug why error pass here
-          logger.log(`Attempt: ${attempt}, isRetry: ${isRetry}, e.message: ${e.message}`);
+          this.logger.log(`Attempt: ${attempt}, isRetry: ${isRetry}, e.message: ${e.message}`);
         }
         return isRetry;
       },
     });
     this.functionVersionId = res.getFunctionVersionId();
-    logger.log(`Version created: ${this.functionVersionId}`);
+    this.logger.log(`Version created: ${this.functionVersionId}`);
   }
 
   // eslint-disable-next-line max-statements
@@ -142,7 +149,7 @@ export class DeployFn {
 
   private async createFunction() {
     const { functionName } = this.config;
-    logger.log(`Creating function: ${functionName}`);
+    this.logger.log(`Creating function: ${functionName}`);
     const operation = await this.api.create({ folderId: this.folderId, name: functionName });
     const res = await this.session.waitOperation(operation, CreateFunctionMetadata);
     return res.getFunctionId();
@@ -163,7 +170,7 @@ export class DeployFn {
   private async showVersionSize() {
     const res = await this.api.getVersion({ functionVersionId: this.functionVersionId });
     const { imageSize } = res.toObject();
-    logger.log(`Version size: ${formatBytes(imageSize)}`);
+    this.logger.log(`Version size: ${formatBytes(imageSize)}`);
   }
 
   private getDeployConfig() {
@@ -173,12 +180,12 @@ export class DeployFn {
   }
 
   private logStart() {
-    logger.log(`Deploying function "${this.config.functionName}"...`);
+    this.logger.log(`Deploying function "${this.config.functionName}"...`);
     this.startTime = Date.now();
   }
 
   private logDone() {
     const duration = Math.round((Date.now() - this.startTime) / 1000);
-    logger.log(`Done (${duration}s).`);
+    this.logger.log(`Done (${duration}s).`);
   }
 }
