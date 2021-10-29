@@ -30,6 +30,7 @@ export interface DeployConfig {
   timeout: number,
   memory: number,
   account?: string,
+  tags?: string[],
   environment?: Record<string, string>,
 }
 
@@ -117,14 +118,15 @@ export class DeployFn {
 
   // eslint-disable-next-line max-statements
   private buildCreateFunctionVersionRequest() {
-    const { handler, runtime, timeout, memory } = this.deployConfig;
+    const { handler, runtime, timeout, memory, tags } = this.deployConfig;
     const req = new CreateFunctionVersionRequest();
     req.setFunctionId(this.functionId);
     req.setEntrypoint(handler);
     req.setRuntime(runtime);
     req.setExecutionTimeout(new Duration().setSeconds(timeout));
     req.setResources(new Resources().setMemory(memory * 1024 * 1024));
-    this.serviceAccountId && req.setServiceAccountId(this.serviceAccountId);
+    if (this.serviceAccountId) req.setServiceAccountId(this.serviceAccountId);
+    if (tags) req.setTagList(tags);
     this.setEnvVars(req);
     req.setContent(this.zip.toBuffer());
     // todo: set tags

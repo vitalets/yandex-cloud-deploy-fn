@@ -8,6 +8,7 @@ module.exports = {
     timeout: 5,
     memory: 128,
     account: 'editor-test',
+    tags: [ 'my-tag' ],
     environment: {
       NODE_ENV: 'production'
     },
