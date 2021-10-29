@@ -1,5 +1,5 @@
 # yandex-cloud-deploy-fn
-CLI для деплоя функций в Yandex Cloud.
+CLI для деплоя функций в Yandex Cloud на Node.js.
 
 ## Зачем
 Отличия от связки [serverless framework](https://github.com/serverless/serverless) + [yandex-cloud-serverless-plugin](https://github.com/yandex-cloud/serverless-plugin):
