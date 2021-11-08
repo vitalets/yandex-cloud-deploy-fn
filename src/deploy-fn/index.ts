@@ -24,7 +24,7 @@ import { Zip } from './zip';
 import { getAuthInfo } from '../helpers/auth-info';
 
 export interface DeployConfig {
-  files: string | string[],
+  files: (string | FileSrcToZip)[],
   handler: string,
   runtime: string,
   timeout: number,
@@ -32,6 +32,12 @@ export interface DeployConfig {
   account?: string,
   tags?: string[],
   environment?: Record<string, string>,
+}
+
+/** Copy file from src to zip */
+export interface FileSrcToZip {
+  src: string;
+  zip: string;
 }
 
 export class DeployFn {

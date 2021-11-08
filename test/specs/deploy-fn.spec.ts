@@ -28,7 +28,11 @@ function getConfig(): Config {
     authKeyFile: 'fake-file.json',
     functionName: 'test-fn',
     deploy: {
-      files: [ 'example/package*.json', 'example/dist/**' ],
+      files: [
+        'example/package*.json',
+        'example/dist/**',
+        { src: 'README.md', zip: 'README.md' },
+      ],
       handler: 'example/dist/index.handler',
       runtime: 'nodejs14',
       timeout: 5,

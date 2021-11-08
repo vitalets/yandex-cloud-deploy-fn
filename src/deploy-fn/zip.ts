@@ -23,8 +23,15 @@ export class Zip {
   }
 
   private async archiveFiles() {
-    const files = await fg(this.deployConfig.files, { dot: true });
-    files.forEach(file => this.zip.addLocalFile(file, path.dirname(file)));
+    for (const pattern of this.deployConfig.files) {
+      if (typeof pattern === 'string') {
+        const files = await fg(pattern, { dot: true });
+        files.forEach(file => this.zip.addLocalFile(file, path.dirname(file)));
+      } else {
+        const { src, zip } = pattern;
+        this.zip.addLocalFile(src, path.dirname(zip), path.basename(zip));
+      }
+    }
   }
 
   private assertHandlerExists() {
