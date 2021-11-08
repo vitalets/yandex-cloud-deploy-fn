@@ -1,8 +1,12 @@
 module.exports = {
   authKeyFile: '../.auth-key.json',
   functionName: 'test-fn',
+  zipDir: '../temp',
   deploy: {
-    files: [ 'package*.json', 'dist/**' ],
+    files: [
+      'package*.json',
+      'dist/**',
+    ],
     handler: 'dist/index.handler',
     runtime: 'nodejs14',
     timeout: 5,

@@ -9,12 +9,17 @@ import { Config } from '../config';
 export class Zip {
   zip: AdmZip;
 
-  constructor(private deployConfig: NonNullable<Config['deploy']>) {
+  constructor(private config: Config) {
     this.zip = new AdmZip();
+  }
+
+  get deployConfig() {
+    return this.config.deploy!;
   }
 
   async create() {
     await this.archiveFiles();
+    this.extractToZipDirIfNeeded();
     this.assertHandlerExists();
   }
 
@@ -31,6 +36,12 @@ export class Zip {
         const { src, zip } = pattern;
         this.zip.addLocalFile(src, path.dirname(zip), path.basename(zip));
       }
+    }
+  }
+
+  private extractToZipDirIfNeeded() {
+    if (this.config.zipDir) {
+      this.zip.extractAllTo(this.config.zipDir, true);
     }
   }
 

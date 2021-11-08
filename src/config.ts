@@ -14,6 +14,8 @@ export interface Config {
   folderId?: SessionOptions['folderId'];
   useCliConfig?: SessionOptions['useCliConfig'];
   functionName: string;
+  /** Directory to extract zip (mainly for debug) */
+  zipDir?: string;
   deploy?: DeployConfig;
   tags?: (string | TagConfig)[];
 }

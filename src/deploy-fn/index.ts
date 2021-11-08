@@ -41,7 +41,6 @@ export interface FileSrcToZip {
 }
 
 export class DeployFn {
-  deployConfig: DeployConfig;
   session: Session;
   api: GrpcPromisedClient<FunctionServiceClient>;
   folderId = '';
@@ -52,11 +51,15 @@ export class DeployFn {
   startTime = 0;
   logger: Logger;
 
+  get deployConfig() {
+    return this.config.deploy!;
+  }
+
   constructor(private config: Config) {
-    this.deployConfig = this.getDeployConfig();
+    this.assertConfig();
     this.session = new Session(config);
     this.api = this.session.createClient(FunctionServiceClient);
-    this.zip = new Zip(this.deployConfig);
+    this.zip = new Zip(this.config);
     this.logger = new Logger(config.functionName);
   }
 
@@ -179,10 +182,9 @@ export class DeployFn {
     this.logger.log(`Version size: ${formatBytes(imageSize)}`);
   }
 
-  private getDeployConfig() {
+  private assertConfig() {
     if (!this.config.functionName) throw new Error(`Empty config.functionName`);
     if (!this.config.deploy) throw new Error(`Empty config.deploy`);
-    return this.config.deploy;
   }
 
   private logStart() {
