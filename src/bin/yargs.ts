@@ -7,7 +7,7 @@ const options = yargs(hideBin(process.argv))
     alias: 'c',
     type: 'string',
     description: 'Path to config file',
-    default: './deploy.config.js',
+    default: './deploy.config.(js|cjs)',
   })
   .parseSync();
 

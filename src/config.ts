@@ -2,6 +2,7 @@
  * Load deploy.config.js
  */
 import path from 'path';
+import fs from 'fs';
 import { Session } from 'yandex-cloud-lite';
 import { TagConfig } from './deploy-fn-tag/tags-manager';
 import { DeployConfig } from './deploy-fn';
@@ -21,8 +22,18 @@ export interface Config {
 }
 
 export async function loadConfigFromFile(file: string): Promise<Config> {
-  // todo: find file js, cjs, mjs
-  const fullPath = path.join(process.cwd(), file);
+  const fullPaths = getFileVariants(file).map(file => path.resolve(file));
+  const fullPath = fullPaths.find(p => fs.existsSync(p));
+  if (!fullPath) throw new Error(`Config file not found: ${fullPaths}`);
   const content = await import(fullPath);
   return content.default as Config;
+}
+
+function getFileVariants(file: string) {
+  const fileInfo = path.parse(file);
+  // use variants if file is default value: ./deploy.config.(js|cjs)
+  const useVariants = fileInfo.ext.includes('|');
+  return useVariants
+    ? [ '.js', '.cjs' ].map(ext => path.format({ ...fileInfo, base: '', ext }))
+    : [ file ];
 }

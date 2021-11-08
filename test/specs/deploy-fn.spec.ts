@@ -1,4 +1,4 @@
-import { Config } from '../../src/config';
+import { Config, loadConfigFromFile } from '../../src/config';
 import { DeployFn } from '../../src/deploy-fn';
 
 describe('deploy-fn', () => {
@@ -20,6 +20,16 @@ describe('deploy-fn', () => {
     config.deploy!.handler = 'path/to/index.handler';
     const d = getDeployFn(config);
     await assert.rejects(d.run(), /Error: Handler file not found in zip: path\/to\/index\.handler/);
+  });
+
+  it('load config: use variants', async () => {
+    const fn = () => loadConfigFromFile('./deploy.config.(js|cjs)');
+    await assert.rejects(fn(), (e: Error) => {
+      assert.match(e.message, /Config file not found/);
+      assert.match(e.message, /deploy\.config\.js/);
+      assert.match(e.message, /deploy\.config\.cjs/);
+      return true;
+    });
   });
 });
 
