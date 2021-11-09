@@ -18,8 +18,9 @@ export class Zip {
   }
 
   async create() {
-    await this.archiveFiles();
-    this.extractToZipDirIfNeeded();
+    await this.addPatterns();
+    this.addCustomFiles();
+    this.extractToDirIfNeeded();
     this.assertHandlerExists();
   }
 
@@ -27,19 +28,22 @@ export class Zip {
     return this.zip.toBuffer();
   }
 
-  private async archiveFiles() {
-    for (const pattern of this.deployConfig.files) {
-      if (typeof pattern === 'string') {
-        const files = await fg(pattern, { dot: true });
-        files.forEach(file => this.zip.addLocalFile(file, path.dirname(file)));
-      } else {
-        const { src, zip } = pattern;
-        this.zip.addLocalFile(src, path.dirname(zip), path.basename(zip));
-      }
-    }
+  private async addPatterns() {
+    const patterns = this.deployConfig.files.filter(file => typeof file === 'string') as string[];
+    const files = await fg(patterns, { dot: true });
+    files.forEach(file => this.zip.addLocalFile(file, path.dirname(file)));
   }
 
-  private extractToZipDirIfNeeded() {
+  private async addCustomFiles() {
+    this.deployConfig.files.forEach(file => {
+      if (typeof file !== 'string') {
+        const { src, zip } = file;
+        this.zip.addLocalFile(src, path.dirname(zip), path.basename(zip));
+      }
+    });
+  }
+
+  private extractToDirIfNeeded() {
     if (this.config.zipDir) {
       this.zip.extractAllTo(this.config.zipDir, true);
     }
