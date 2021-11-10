@@ -14,11 +14,17 @@ export interface Config {
   oauthToken?: SessionOptions['oauthToken'];
   folderId?: SessionOptions['folderId'];
   useCliConfig?: SessionOptions['useCliConfig'];
+  awsCredentials?: AwsCredentials;
   functionName: string;
   /** Directory to extract zip (mainly for debug) */
   zipDir?: string;
   deploy?: DeployConfig;
   tags?: (string | TagConfig)[];
+}
+
+export interface AwsCredentials {
+  accessKeyId: string;
+  secretAccessKey: string;
 }
 
 export async function loadConfigFromFile(file: string): Promise<Config> {

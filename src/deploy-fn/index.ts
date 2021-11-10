@@ -2,9 +2,7 @@
  * Deploy cloud function.
  */
 
-/* eslint-disable max-lines */
-
-import { GrpcPromisedClient, Duration, Session } from 'yandex-cloud-lite';
+import { GrpcPromisedClient, Session } from 'yandex-cloud-lite';
 import {
   FunctionServiceClient
 } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_service_grpc_pb';
@@ -12,16 +10,16 @@ import {
   ServiceAccountServiceClient
 } from 'yandex-cloud-lite/generated/yandex/cloud/iam/v1/service_account_service_grpc_pb';
 import {
-  CreateFunctionVersionRequest,
   CreateFunctionVersionMetadata,
   CreateFunctionMetadata,
 } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_service_pb';
-import { Resources } from 'yandex-cloud-lite/generated/yandex/cloud/serverless/functions/v1/function_pb';
+
 import { Config } from '../config';
 import { Logger } from '../helpers/logger';
-import { formatBytes } from '../helpers';
+import prettyBytes from 'pretty-bytes';
 import { Zip } from './zip';
 import { getAuthInfo } from '../helpers/auth-info';
+import { RequestBuilder } from './request-builder';
 
 export interface DeployConfig {
   files: (string | FileSrcToZip)[],
@@ -32,6 +30,8 @@ export interface DeployConfig {
   account?: string,
   tags?: string[],
   environment?: Record<string, string>,
+  bucketName?: string,
+  bucketPath?: string,
 }
 
 /** Copy file from src to zip */
@@ -43,6 +43,7 @@ export interface FileSrcToZip {
 export class DeployFn {
   session: Session;
   api: GrpcPromisedClient<FunctionServiceClient>;
+  requestBuilder: RequestBuilder;
   folderId = '';
   zip: Zip;
   functionId = '';
@@ -61,6 +62,7 @@ export class DeployFn {
     this.api = this.session.createClient(FunctionServiceClient);
     this.zip = new Zip(this.config);
     this.logger = new Logger(config.functionName);
+    this.requestBuilder = new RequestBuilder(this.config, this.logger);
   }
 
   async run() {
@@ -111,42 +113,22 @@ export class DeployFn {
   }
 
   private async createFunctionVersion() {
-    const req = this.buildCreateFunctionVersionRequest();
+    const req = await this.requestBuilder.build({
+      content: this.zip.toBuffer(),
+      functionId: this.functionId,
+      serviceAccountId: this.serviceAccountId,
+    });
     this.logger.log(`Sending API request...`);
     const operation = await this.api.createVersion(req);
     this.logger.log(`Waiting operation complete...`);
     const res = await this.session.waitOperation(operation, CreateFunctionVersionMetadata, {
       startingDelay: 1000,
       maxDelay: 1000,
-      numOfAttempts: 3 * 60, // 3 mminutes
-      retry: (e, attempt) => {
-        const isRetry = e.message === 'operation-not-done';
-        if (!isRetry) {
-          // log this for debug why error pass here
-          this.logger.log(`Attempt: ${attempt}, isRetry: ${isRetry}, e.message: ${e.message}`);
-        }
-        return isRetry;
-      },
+      numOfAttempts: 5 * 60, // 5 min (todo: configure?)
     });
     this.functionVersionId = res.getFunctionVersionId();
     this.logger.log(`Version created: ${this.functionVersionId}`);
-  }
-
-  // eslint-disable-next-line max-statements
-  private buildCreateFunctionVersionRequest() {
-    const { handler, runtime, timeout, memory, tags } = this.deployConfig;
-    const req = new CreateFunctionVersionRequest();
-    req.setFunctionId(this.functionId);
-    req.setEntrypoint(handler);
-    req.setRuntime(runtime);
-    req.setExecutionTimeout(new Duration().setSeconds(timeout));
-    req.setResources(new Resources().setMemory(memory * 1024 * 1024));
-    if (this.serviceAccountId) req.setServiceAccountId(this.serviceAccountId);
-    if (tags) req.setTagList(tags);
-    this.setEnvVars(req);
-    req.setContent(this.zip.toBuffer());
-    // todo: set tags
-    return req;
+    await this.requestBuilder.cleanup();
   }
 
   private async getFunctionId() {
@@ -164,22 +146,10 @@ export class DeployFn {
     return res.getFunctionId();
   }
 
-  private setEnvVars(req: CreateFunctionVersionRequest) {
-    const { environment } = this.deployConfig;
-    if (environment) {
-      const envMap = req.getEnvironmentMap();
-      Object.keys(environment).forEach(key => {
-        const value = environment[key];
-        if (value === undefined) throw new Error(`Undefined env var: ${key}`);
-        envMap.set(key, value);
-      });
-    }
-  }
-
   private async showVersionSize() {
     const res = await this.api.getVersion({ functionVersionId: this.functionVersionId });
     const { imageSize } = res.toObject();
-    this.logger.log(`Version size: ${formatBytes(imageSize)}`);
+    this.logger.log(`Version size: ${prettyBytes(imageSize)}`);
   }
 
   private assertConfig() {
