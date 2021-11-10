@@ -19,7 +19,7 @@ module.exports = {
     environment: {
       NODE_ENV: 'production'
     },
-    bucketName: 'tools-testing',
+    bucketName: 'upload-code',
   },
   tags: [
     'prod',
