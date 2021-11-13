@@ -19,7 +19,7 @@ import { Logger } from '../helpers/logger';
 import prettyBytes from 'pretty-bytes';
 import { Zip } from './zip';
 import { getAuthInfo } from '../helpers/auth-info';
-import { RequestBuilder } from './request-builder';
+import { VersionBuilder } from './version-builder';
 
 export interface DeployConfig {
   files: (string | FileSrcToZip)[],
@@ -43,7 +43,7 @@ export interface FileSrcToZip {
 export class DeployFn {
   session: Session;
   api: GrpcPromisedClient<FunctionServiceClient>;
-  requestBuilder: RequestBuilder;
+  versionBuilder: VersionBuilder;
   folderId = '';
   zip: Zip;
   functionId = '';
@@ -62,7 +62,7 @@ export class DeployFn {
     this.api = this.session.createClient(FunctionServiceClient);
     this.zip = new Zip(this.config);
     this.logger = new Logger(config.functionName);
-    this.requestBuilder = new RequestBuilder(this.config, this.logger);
+    this.versionBuilder = new VersionBuilder(this.config, this.logger);
   }
 
   async run() {
@@ -113,7 +113,7 @@ export class DeployFn {
   }
 
   private async createFunctionVersion() {
-    const req = await this.requestBuilder.build({
+    const req = await this.versionBuilder.build({
       content: this.zip.toBuffer(),
       functionId: this.functionId,
       serviceAccountId: this.serviceAccountId,
@@ -128,7 +128,7 @@ export class DeployFn {
     });
     this.functionVersionId = res.getFunctionVersionId();
     this.logger.log(`Version created: ${this.functionVersionId}`);
-    await this.requestBuilder.cleanup();
+    await this.versionBuilder.cleanup();
   }
 
   private async getFunctionId() {

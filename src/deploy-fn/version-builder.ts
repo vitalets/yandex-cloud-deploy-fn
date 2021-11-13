@@ -21,7 +21,7 @@ export interface ExternalProps {
   serviceAccountId?: string;
 }
 
-export class RequestBuilder {
+export class VersionBuilder {
   req: CreateFunctionVersionRequest;
   s3Object?: S3Object;
 
@@ -49,7 +49,11 @@ export class RequestBuilder {
   }
 
   async cleanup() {
-    await this.s3Object?.delete();
+    if (this.s3Object) {
+      const { bucketName, filePath } = this.s3Object;
+      this.logger.log(`Deleting zip from bucket: [${bucketName}]${filePath}`);
+      await this.s3Object.delete();
+    }
   }
 
   private setEnvVars() {
@@ -71,12 +75,12 @@ export class RequestBuilder {
   }
 
   private setDirectUpload(content: Buffer) {
-    this.logger.log(`Zip size: ${prettyBytes(content.length)} (will upload directly)`);
+    this.logger.log(`Zip size: ${prettyBytes(content.length)} (upload directly)`);
     this.req.setContent(content);
   }
 
   private async setStorageUpload(content: Buffer) {
-    this.logger.log(`Zip size: ${prettyBytes(content.length)} (will upload via storage)`);
+    this.logger.log(`Zip size: ${prettyBytes(content.length)} (upload via storage)`);
     this.s3Object = new S3Object(this.config, content);
     const { bucketName, filePath } = this.s3Object;
     this.logger.log(`Uploading zip to bucket: [${bucketName}]${filePath}`);
