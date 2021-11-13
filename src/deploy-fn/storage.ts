@@ -5,9 +5,15 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Config } from '../config';
 
+export interface StorageConfig {
+  bucketName: string,
+  bucketPath?: string,
+  accessKeyId?: string;
+  secretAccessKey?: string;
+}
+
 const REGION = 'ru-central1';
 const ENDPOINT = 'https://storage.yandexcloud.net';
-// dont forget to add  AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 export class S3Object {
   client: S3Client;
@@ -15,17 +21,16 @@ export class S3Object {
 
   constructor(private config: Config, private content: Buffer) {
     this.assertConfig();
-    const credentials = this.config.awsCredentials;
-    this.client = new S3Client({ region: REGION, endpoint: ENDPOINT, credentials });
+    this.client = this.createClient();
     this.filePath = this.generateFilePath();
   }
 
-  get deployConfig() {
-    return this.config.deploy!;
+  get storageConfig() {
+    return this.config.storage!;
   }
 
   get bucketName() {
-    return this.deployConfig.bucketName!;
+    return this.storageConfig.bucketName!;
   }
 
   async upload() {
@@ -46,11 +51,20 @@ export class S3Object {
   }
 
   private generateFilePath() {
-    const bucketPath = (this.deployConfig.bucketPath || '').replace(/\/+$/, '');
+    const bucketPath = (this.storageConfig.bucketPath || '').replace(/\/+$/, '');
     return `${bucketPath}/${this.config.functionName}-${Date.now()}.zip`;
   }
 
   private assertConfig() {
-    if (!this.bucketName) throw new Error(`Empty bucketName`);
+    if (!this.storageConfig) throw new Error(`Please fill config.storage to upload fn > 3.5 Mb`);
+    if (!this.bucketName) throw new Error(`Empty config.storage.bucketName`);
+  }
+
+  private createClient() {
+    const { accessKeyId, secretAccessKey } = this.storageConfig;
+    const credentials = accessKeyId && secretAccessKey
+      ? { accessKeyId, secretAccessKey }
+      : undefined;
+    return new S3Client({ region: REGION, endpoint: ENDPOINT, credentials });
   }
 }

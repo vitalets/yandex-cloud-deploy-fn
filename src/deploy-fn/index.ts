@@ -22,16 +22,14 @@ import { getAuthInfo } from '../helpers/auth-info';
 import { VersionBuilder } from './version-builder';
 
 export interface DeployConfig {
-  files: (string | FileSrcToZip)[],
-  handler: string,
-  runtime: string,
-  timeout: number,
-  memory: number,
-  account?: string,
-  tags?: string[],
-  environment?: Record<string, string>,
-  bucketName?: string,
-  bucketPath?: string,
+  files: (string | FileSrcToZip)[];
+  handler: string;
+  runtime: string;
+  timeout: number;
+  memory: number;
+  account?: string;
+  tags?: string[];
+  environment?: Record<string, string>;
 }
 
 /** Copy file from src to zip */

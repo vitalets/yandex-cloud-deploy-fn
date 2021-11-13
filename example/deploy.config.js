@@ -4,6 +4,9 @@ module.exports = {
   authKeyFile: '../.auth-key.json',
   functionName: 'test-fn',
   zipDir: '../temp',
+  storage: {
+    bucketName: 'upload-code',
+  },
   deploy: {
     files: [
       'package*.json',
@@ -19,7 +22,6 @@ module.exports = {
     environment: {
       NODE_ENV: 'production'
     },
-    bucketName: 'upload-code',
   },
   tags: [
     'prod',

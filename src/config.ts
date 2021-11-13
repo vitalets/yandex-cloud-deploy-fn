@@ -6,25 +6,21 @@ import fs from 'fs';
 import { Session } from 'yandex-cloud-lite';
 import { TagConfig } from './deploy-fn-tag/tags-manager';
 import { DeployConfig } from './deploy-fn';
+import { StorageConfig } from './deploy-fn/storage';
 
 type SessionOptions = Session['options'];
 
 export interface Config {
+  functionName: string;
   authKeyFile?: SessionOptions['authKeyFile'];
   oauthToken?: SessionOptions['oauthToken'];
   folderId?: SessionOptions['folderId'];
   useCliConfig?: SessionOptions['useCliConfig'];
-  awsCredentials?: AwsCredentials;
-  functionName: string;
+  storage?: StorageConfig;
   /** Directory to extract zip (mainly for debug) */
   zipDir?: string;
   deploy?: DeployConfig;
   tags?: (string | TagConfig)[];
-}
-
-export interface AwsCredentials {
-  accessKeyId: string;
-  secretAccessKey: string;
 }
 
 export async function loadConfigFromFile(file: string): Promise<Config> {
