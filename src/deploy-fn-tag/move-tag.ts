@@ -52,9 +52,13 @@ export class MoveTag {
 
   private runCmdPre() {
     const { cmdPre, name } = this.tag;
-    if (cmdPre) {
-      runCmd(cmdPre, { tag: name });
+    if (!cmdPre) return;
+    const newVersionTag = this.newVersion.tags[0];
+    if (cmdPre.includes('{newVersionTag}') && !newVersionTag) {
+      logger.log(`Skipping cmdPre because target version does not have any tags.`);
+      return;
     }
+    runCmd(cmdPre, { oldVersionTag: name, newVersionTag });
   }
 
   private setIsRollback() {

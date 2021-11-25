@@ -25,7 +25,7 @@ module.exports = {
   },
   tags: [
     'prod',
-    { name: 'prod_10', history: 2, cmdPre: 'echo "example cmd {tag}"' },
+    { name: 'prod_10', history: 2, cmdPre: 'echo "{oldVersionTag} -> {newVersionTag}"' },
     { name: 'test', history: 0 },
     { name: 'all (prod, test)', tags: [ 'prod', 'test' ] }
   ],
