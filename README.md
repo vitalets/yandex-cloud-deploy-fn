@@ -6,7 +6,7 @@ CLI для деплоя функций в Yandex Cloud на Node.js.
 * ✅ &nbsp;Нет зависимости на yc cli ([#13](https://github.com/yandex-cloud/serverless-plugin/issues/13))
 * ✅ &nbsp;Нет лишних сообщений в логах вида `Serverless: Unknonwn function "xxx" found` ([#18](https://github.com/yandex-cloud/serverless-plugin/issues/18))
 * ✅ &nbsp;загрузка кода через Object Storage (для архивов > 3.5 Mb)
-* ✅ &nbsp;Интерактивное перекидывание тегов
+* ✅ &nbsp;Интерактивное выставление тегов
 - ❌ &nbsp;Пока деплоится только функция. Триггеры, сервисные аккаунты и message queue не создаются
 
 ## Установка
@@ -30,7 +30,20 @@ module.exports = {
       NODE_ENV: 'production'
     },
   },
-  tags: [ 'prod', 'testing' ] // необязательно
+
+  // === Для загрузки больших функций через object storage ===
+  // storage: {
+  //   bucketName: 'upload',
+  //   bucketPath: '/',
+  //   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  //   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  // },
+
+  // === Для интерактивного выставления тегов ===
+  // tags: [
+  //   'testing',
+  //   { name: 'prod', cmdPre: 'TAG={newVersionTag} npm run test' },
+  // ]
 };
 ```
 
